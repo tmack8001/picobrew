@@ -79,8 +79,8 @@ export default class Recipes extends Command {
       (async () => {
         try {
           const response = await fetchRecipeJSON(args.recipeId, userId, cookieJar);
-          const recipe = JSON.parse(response.body);
-          this.writeOutputFile(flags, recipe.VM.Recipe.Name, JSON.stringify(response.body, null, 2));
+          const recipe = response.body;
+          this.writeOutputFile(flags, recipe.VM.Recipe.Name, JSON.stringify(recipe, null, 2));
         } catch (error) {
           console.log(error);
           this.error('failed to fetch json recipe')
