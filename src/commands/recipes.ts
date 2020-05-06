@@ -28,6 +28,11 @@ export default class Recipes extends Command {
       description: 'path to output file'
     }),
     // flag with no value (-f, --force)
+    all: flags.boolean({
+      char: 'a',
+      description: '(NOT SUPPORTED YET) export all recipes',
+      default: false
+    }),
     verbose: flags.boolean({
       char: 'v',
       description: 'enable debugging output',
@@ -41,6 +46,14 @@ export default class Recipes extends Command {
 
   async run() {
     const { args, flags } = this.parse(Recipes)
+
+    if (args.recipeId == undefined && flags.all == false) {
+      this.error("invalid usage: either `recipeId` or `--all` is required");
+    }
+
+    if (flags.all) {
+      this.error("`--all` is not supported yet");
+    }
 
     const format = flags.format || 'beerxml'
     const outputFile = flags.output // flag is optional (if not provided will default to name of recipe)

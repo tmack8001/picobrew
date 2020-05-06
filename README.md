@@ -40,13 +40,14 @@ USAGE
   $ picobrew recipes [RECIPEID]
 
 OPTIONS
+  -a, --all                  (NOT SUPPORTED YET) export all recipes
   -f, --format=beerxml|json  [default: beerxml] format of recipe output
   -h, --help                 show CLI help
   -o, --output=output        path to output file
   -v, --verbose              enable debugging output
 
 EXAMPLE
-  $ picobrew recipes --format=beerxml
+  $ picobrew recipes 95bd40cc4f4a4843923f88128b2286a6 --format=beerxml
 ```
 
 _See code: [src/commands/hello.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.1.0/src/commands/hello.ts)_
