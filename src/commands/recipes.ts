@@ -25,8 +25,7 @@ export default class Recipes extends Command {
     }),
     output: flags.string({
       char: 'o',
-      description: 'path to output file',
-      default: 'recipe'
+      description: 'path to output file'
     }),
     // flag with no value (-f, --force)
     verbose: flags.boolean({
@@ -44,7 +43,7 @@ export default class Recipes extends Command {
     const { args, flags } = this.parse(Recipes)
 
     const format = flags.format || 'beerxml'
-    const outputFile = flags.output // flag is required
+    const outputFile = flags.output // flag is optional (if not provided will default to name of recipe)
     const verbose = flags.verbose || true
     let userId;
 
@@ -66,13 +65,13 @@ export default class Recipes extends Command {
 
       // prompt for user session cookie `.ASPXAUTH` masking after entered
       const sessionToken = await cli.prompt('What is \'.ASPXAUTH\' cookie value?', { type: 'hide' })
-    
+
       await setCookie(`.ASPXAUTH=${sessionToken}`, 'https://picobrew.com');
 
       // store into password manager - TODO prompt if user wants to store for future use
       keytar.setPassword("picobrew", userId, sessionToken);
     } else {
-      userId = credentials[0].account;      
+      userId = credentials[0].account;
       await setCookie(`.ASPXAUTH=${credentials[0].password}`, 'https://picobrew.com');
     }
 
@@ -80,7 +79,8 @@ export default class Recipes extends Command {
       (async () => {
         try {
           const response = await fetchRecipeJSON(args.recipeId, userId, cookieJar);
-          this.writeOutputFile(flags, JSON.stringify(response.body, null, 2));
+          const recipe = JSON.parse(response.body);
+          this.writeOutputFile(flags, recipe.VM.Recipe.Name, JSON.stringify(response.body, null, 2));
         } catch (error) {
           console.log(error);
           this.error('failed to fetch json recipe')
@@ -89,19 +89,21 @@ export default class Recipes extends Command {
     } else if (format === "beerxml") {
       (async () => {
         const jsonResponse = await fetchRecipeJSON(args.recipeId, userId, cookieJar);
-        const xmlResponse = await fetchRecipeXML(JSON.stringify(jsonResponse.body), cookieJar);
-        console.log(xmlResponse)
-        this.writeOutputFile(flags, xmlResponse.body);
+        const recipe = jsonResponse.body;
+
+        const xmlResponse = await fetchRecipeXML(JSON.stringify(recipe), cookieJar);
+        this.writeOutputFile(flags, recipe.VM.Recipe.Name, xmlResponse.body);
       })();
     }
 
   }
 
-  private writeOutputFile(flags: { help: void; format: string; output: string; verbose: boolean; }, body: any) {    
+  private writeOutputFile(flags: { help: void; format: string; output: string | undefined; verbose: boolean; }, recipeName: string, body: any) {
+    var filename = flags.output || recipeName;
+
     var re = /(?:\.([^.]+))?$/;
     var ext = re.exec(flags.output)[1];
 
-    var filename = flags.output;
     if (!ext) {
       filename += flags.format == "json" ? ".json" : ".xml";
     }
@@ -109,9 +111,9 @@ export default class Recipes extends Command {
     if (ext == "xml" && flags.format == "json" ||
       ext == "json" && flags.format == "beerxml") {
       this.error("flags --format and --output conflict");
-    }
+    }    
 
-    console.log(`writing file ${filename}`);
+    console.log(`writing file ${filename} for recipe ${recipeName}`);
 
     fs.writeFile(filename, body, function (err) {
       if (err) {
@@ -122,7 +124,6 @@ export default class Recipes extends Command {
 }
 
 function fetchRecipeJSON(recipeId: string, user: string, cookieJar: any): { body: any; } {
-  console.log(recipeId)
   return picobrew.post(`API/Rest/RestAPI.cshtml?type=RecipeVMRequest&id=${user}`, {
     cookieJar,
     json: {
@@ -135,8 +136,6 @@ function fetchRecipeJSON(recipeId: string, user: string, cookieJar: any): { body
 
 function fetchRecipeXML(recipeJson: any, cookieJar: any): { body: any; } {
   const recipe = JSON.parse(recipeJson).VM.Recipe
-
-  console.log(recipe)
 
   return picobrew.post(`z_crafter/json/exportrecipejson`, {
     cookieJar,
