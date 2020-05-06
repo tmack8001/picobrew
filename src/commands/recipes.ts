@@ -1,5 +1,7 @@
 const { promisify } = require('util');
 const fs = require('fs');
+const path = require('path')
+
 const { CookieJar } = require('tough-cookie');
 const picobrew = require('../clients/picobrew');
 const keytar = require('keytar')
@@ -11,7 +13,9 @@ export default class Recipes extends Command {
   static description = 'Command used to export different formats of beer recipes from the Picobrew Brewhouse.'
 
   static examples = [
-    `$ picobrew recipes --format=beerxml`,
+    `$ picobrew recipes <recipeId> --format=beerxml`,
+    `$ picobrew recipes --format=beerxml --output_folder=recipes/xml --all`,
+    `$ picobrew recipes --format=json --output_folder=recipes/json --all`,
   ]
 
   static flags = {
@@ -23,9 +27,12 @@ export default class Recipes extends Command {
       options: ['beerxml', 'json'],
       default: 'beerxml'
     }),
-    output: flags.string({
+    output_filename: flags.string({
       char: 'o',
-      description: 'path to output file'
+      description: 'custom output filename (default is to use name of brew recipe)'
+    }),
+    output_folder: flags.string({
+      description: 'path to output folder (useful for use with `--all`)'
     }),
     // flag with no value (-f, --force)
     all: flags.boolean({
@@ -51,14 +58,9 @@ export default class Recipes extends Command {
       this.error("invalid usage: either `recipeId` or `--all` is required");
     }
 
-    if (flags.all) {
-      this.error("`--all` is not supported yet");
-    }
-
-    const format = flags.format || 'beerxml'
-    const outputFile = flags.output // flag is optional (if not provided will default to name of recipe)
-    const verbose = flags.verbose || true
-    let userId;
+    const format = flags.format
+    const verbose = flags.verbose
+    let userId: string; // to be determined later (keytar or user prompt)
 
     this.log('arguments received: ', args);
     this.log('flags received: ', flags);
@@ -88,34 +90,58 @@ export default class Recipes extends Command {
       await setCookie(`.ASPXAUTH=${credentials[0].password}`, 'https://picobrew.com');
     }
 
-    if (format === "json") {
+    // fetch all recipe GUIDs
+    if (flags.all) {
       (async () => {
         try {
-          const response = await fetchRecipeJSON(args.recipeId, userId, cookieJar);
-          const recipe = response.body;
-          this.writeOutputFile(flags, recipe.VM.Recipe.Name, JSON.stringify(recipe, null, 2));
+          const response = await fetchAllRecipes(userId, cookieJar);
+          const recipes = response.body;
+
+          console.log(`found ${recipes.length} recipes in your BrewHouse`)
+
+          recipes.forEach(recipe => {
+            const guid = recipe.GUID
+            this.exportRecipeToFile(format, guid, userId, cookieJar, flags);
+          });
         } catch (error) {
           console.log(error);
           this.error('failed to fetch json recipe')
         }
       })();
-    } else if (format === "beerxml") {
-      (async () => {
-        const jsonResponse = await fetchRecipeJSON(args.recipeId, userId, cookieJar);
-        const recipe = jsonResponse.body;
+    } else {
+      this.exportRecipeToFile(format, args.recipeId, userId, cookieJar, flags);
+    }
+  }
 
+  private exportRecipeToFile(format: string, recipeId: string, userId: string, cookieJar: any, flags: { help: void; format: string; output_filename: string | undefined; output_folder: string | undefined; all: boolean; verbose: boolean; }) {
+    if (format === "json") {
+      (async () => {
+        try {
+          const response = await fetchRecipeJSON(recipeId, userId, cookieJar);
+          const recipe = response.body;
+          this.writeOutputFile(flags, recipe.VM.Recipe.Name, JSON.stringify(recipe, null, 2));
+        }
+        catch (error) {
+          console.log(error);
+          this.error('failed to fetch json recipe');
+        }
+      })();
+    }
+    else if (format === "beerxml") {
+      (async () => {
+        const jsonResponse = await fetchRecipeJSON(recipeId, userId, cookieJar);
+        const recipe = jsonResponse.body;
         const xmlResponse = await fetchRecipeXML(JSON.stringify(recipe), cookieJar);
         this.writeOutputFile(flags, recipe.VM.Recipe.Name, xmlResponse.body);
       })();
     }
-
   }
 
-  private writeOutputFile(flags: { help: void; format: string; output: string | undefined; verbose: boolean; }, recipeName: string, body: any) {
-    var filename = flags.output || recipeName;
+  private writeOutputFile(flags: { help: void; format: string; output_filename: string | undefined; output_folder: string | undefined; all: boolean; verbose: boolean;}, recipeName: string, body: any) {
+    var filename = flags.output_filename || recipeName;
 
     var re = /(?:\.([^.]+))?$/;
-    var ext = re.exec(flags.output)[1];
+    var ext = re.exec(flags.output_filename)[1];
 
     if (!ext) {
       filename += flags.format == "json" ? ".json" : ".xml";
@@ -124,16 +150,36 @@ export default class Recipes extends Command {
     if (ext == "xml" && flags.format == "json" ||
       ext == "json" && flags.format == "beerxml") {
       this.error("flags --format and --output conflict");
-    }    
+    }
 
     console.log(`writing file ${filename} for recipe ${recipeName}`);
 
-    fs.writeFile(filename, body, function (err) {
+    ensureDirectoryExistence(`${flags.output_folder}/${filename}`);
+    fs.writeFile(`${flags.output_folder}/${filename}`, body, function (err) {
       if (err) {
         return console.log(`failed to write to ${filename}`);
       }
     });
   }
+}
+
+function ensureDirectoryExistence(filePath: string) {
+  var dirname = path.dirname(filePath);
+  if (fs.existsSync(dirname)) {
+    return true;
+  }
+  ensureDirectoryExistence(dirname);
+  fs.mkdirSync(dirname);
+}
+
+function fetchAllRecipes(user: string, cookieJar: any): { body: any; } {
+  return picobrew.post(`Z_Crafter/JSON/Z_Recipe_JSON`, {
+    cookieJar,
+    form: {
+      option: 'getRecipes'
+    },
+    responseType: 'json'
+  });
 }
 
 function fetchRecipeJSON(recipeId: string, user: string, cookieJar: any): { body: any; } {
