@@ -1,12 +1,12 @@
 
 const { promisify } = require('util');
 const got = require('got');
-// const package = require('../../package');
+const pjson = require('../../package');
 
 const instance = got.extend({
 	prefixUrl: 'https://picobrew.com',
 	headers: {
-		'user-agent': `picobrew-cli/0.1.0` // `${package.name}/${package.version}`
+		'user-agent': `${pjson.name}/${pjson.version}`
 	},
 	responseType: 'json',
 	handlers: [

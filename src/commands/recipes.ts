@@ -8,10 +8,10 @@ import { Command, flags } from '@oclif/command'
 import cli from 'cli-ux'
 
 export default class Recipes extends Command {
-  static description = 'describe the command here'
+  static description = 'Command used to export different formats of beer recipes from the Picobrew Brewhouse.'
 
   static examples = [
-    `$ picobrew recipes --format=beerxml --output=beer.xml`,
+    `$ picobrew recipes --format=beerxml`,
   ]
 
   static flags = {
