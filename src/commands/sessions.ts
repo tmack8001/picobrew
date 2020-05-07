@@ -72,7 +72,7 @@ export default class Sessions extends Command {
 
           console.log(`found ${json.SessionViews.length} sessions in your BrewHouse`)
 
-          json.SessionViews.forEach(session => {
+          json.SessionViews.forEach((session: any) => {
             const id = session.SessionID
             const machineName = `${session.Alias} ${session.MachineType}`
             this.writeOutputFile(flags, machineName, `${id}-session.json`, JSON.stringify(session, null, 2));
@@ -90,7 +90,7 @@ export default class Sessions extends Command {
 
         console.log(`found ${json.SessionViews.length} sessions in your BrewHouse`)
 
-        json.SessionViews.forEach(session => {
+        json.SessionViews.forEach((session: any) => {
           const id = session.SessionID
           const machineName = `${session.Alias} ${session.MachineType}`
           this.writeOutputFile(flags, machineName, `${id}-session.json`, JSON.stringify(session, null, 2));
@@ -130,7 +130,7 @@ export default class Sessions extends Command {
     console.log(`writing file ${filePath}`);
 
     ensureDirectoryExistence(`${flags.output_folder}/${filePath}`);
-    fs.writeFile(`${flags.output_folder}/${filePath}`, body, function (err) {
+    fs.writeFile(`${flags.output_folder}/${filePath}`, body, function (err: Error) {
       if (err) {
         return console.log(`failed to write to ${filePath}`);
       }

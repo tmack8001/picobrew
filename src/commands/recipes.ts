@@ -81,7 +81,7 @@ export default class Recipes extends Command {
 
           console.log(`found ${recipes.length} recipes in your BrewHouse`)
 
-          recipes.forEach(recipe => {
+          recipes.forEach((recipe: any) => {
             const guid = recipe.GUID
             this.exportRecipeToFile(format, guid, userId, cookieJar, flags);
           });
@@ -123,7 +123,13 @@ export default class Recipes extends Command {
     var filename = flags.output_filename || recipeName;
 
     var re = /(?:\.([^.]+))?$/;
-    var ext = re.exec(flags.output_filename)[1];
+    let ext;
+    if (flags.output_filename) {
+      var matches = re.exec(flags.output_filename)
+      if (matches && matches.length > 0) {
+        ext = matches[1];
+      }
+    } 
 
     if (!ext) {
       filename += flags.format == "json" ? ".json" : ".xml";
@@ -137,7 +143,7 @@ export default class Recipes extends Command {
     console.log(`writing file ${filename} for recipe ${recipeName}`);
 
     ensureDirectoryExistence(`${flags.output_folder}/${filename}`);
-    fs.writeFile(`${flags.output_folder}/${filename}`, body, function (err) {
+    fs.writeFile(`${flags.output_folder}/${filename}`, body, function (err: Error) {
       if (err) {
         return console.log(`failed to write to ${filename}`);
       }

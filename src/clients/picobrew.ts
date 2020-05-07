@@ -10,7 +10,7 @@ const instance = got.extend({
 	},
 	responseType: 'json',
 	handlers: [
-		(options, next) => {
+		(options: any, next: any) => {
 			// Don't touch streams
 			if (options.isStream) {
 				return next(options);
