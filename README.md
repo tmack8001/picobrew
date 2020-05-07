@@ -21,26 +21,38 @@ running command...
 $ picobrew (-v|--version|version)
 picobrew-cli/0.1.0 darwin-x64 node-v12.6.0
 $ picobrew --help [COMMAND]
+Command line interface used to communicate to Picobrew
+
+VERSION
+  picobrew-cli/0.1.0 darwin-x64 node-v12.6.0
+
 USAGE
-  $ picobrew COMMAND
+  $ picobrew [COMMAND]
+
+COMMANDS
+  hello     describe the command here
+  help      display help for picobrew
+  recipes   Command used to export different formats of beer recipes from the Picobrew Brewhouse.
+  sessions  Command used to export sessions from linked machines from the Picobrew Brewhouse.
 ...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`picobrew recipes [RECIPEID]`](#picobrew-hello-recipe-identifier)
+* [`picobrew recipes [RECIPEID]`](#picobrew-recipes-recipeid)
+* [`picobrew sessions [MACHINEGUID]`](#picobrew-sessions-machineguid)
 * [`picobrew help [COMMAND]`](#picobrew-help-command)
 
 ## `picobrew recipes [RECIPEID]`
 
-Common used to export different formats of beer recipes from the Picobrew Brewhouse.
+Command used to export different formats of beer recipes from the Picobrew Brewhouse.
 
 ```
 USAGE
   $ picobrew recipes [RECIPEID]
 
 OPTIONS
-  -a, --all                              (NOT SUPPORTED YET) export all recipes
+  -a, --all                              export all recipes
   -f, --format=beerxml|json              [default: beerxml] format of recipe output
   -h, --help                             show CLI help
   -o, --output_filename=output_filename  custom output filename (default is to use name of brew recipe)
@@ -51,11 +63,36 @@ EXAMPLE
   $ picobrew recipes 95bd40cc4f4a4843923f88128b2286a6 --format=beerxml
 ```
 
-_See code: [src/commands/hello.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.1.0/src/commands/hello.ts)_
+_See code: [src/commands/recipes.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.1.0/src/commands/recipes.ts)_
+
+## `picobrew sessions [MACHINEGUID]`
+
+Command used to export sessions from linked machines from the Picobrew Brewhouse.
+
+```
+USAGE
+  $ picobrew sessions [MACHINEGUID]
+
+OPTIONS
+  -f, --format=csv|json              [default: csv] path to output folder as each session is a separate json (with --all defaults to guid of machine)
+  -h, --help                         show CLI help
+  -n, --number=number                [default: 20] number of recent sessions to export
+  -o, --output_folder=output_folder  [default: sessions] path to output folder as each session is a separate json (with --all defaults to guid of machine)
+  -s, --session=session              identifier of a specific sessions to export (ie. 60208)
+  -v, --verbose                      enable debugging output
+
+EXAMPLES
+  $ picobrew sessions <machineId> --output_folder=sessions/<machineId>
+  $ picobrew sessions --number=100
+  $ picobrew sessions --session=12345
+```
+
+_See code: [src/commands/sessions.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.1.0/src/commands/sessions.ts)_
+
 
 ## `picobrew help [COMMAND]`
 
-display help for picobrew
+Command to display help for picobrew
 
 ```
 USAGE

@@ -8,4 +8,6 @@
 node_modules
 
 
+# default output_folder locations
 /recipes
+/sessions

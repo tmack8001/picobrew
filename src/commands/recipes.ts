@@ -1,13 +1,11 @@
-const { promisify } = require('util');
+
 const fs = require('fs');
 const path = require('path')
 
-const { CookieJar } = require('tough-cookie');
-const picobrew = require('../clients/picobrew');
-const keytar = require('keytar')
-
 import { Command, flags } from '@oclif/command'
-import cli from 'cli-ux'
+
+const picobrew = require('../clients/picobrew');
+const { credentials, setupCookieJar } = require('../credentials')
 
 export default class Recipes extends Command {
   static description = 'Command used to export different formats of beer recipes from the Picobrew Brewhouse.'
@@ -32,12 +30,13 @@ export default class Recipes extends Command {
       description: 'custom output filename (default is to use name of brew recipe)'
     }),
     output_folder: flags.string({
-      description: 'path to output folder (useful for use with `--all`)'
+      description: 'path to output folder (useful for use with `--all`)',
+      default: 'recipes'
     }),
     // flag with no value (-f, --force)
     all: flags.boolean({
       char: 'a',
-      description: '(NOT SUPPORTED YET) export all recipes',
+      description: 'export all recipes',
       default: false
     }),
     verbose: flags.boolean({
@@ -66,29 +65,10 @@ export default class Recipes extends Command {
     this.log('flags received: ', flags);
 
     this.log(`pulling recipe ${args.recipeId} from Picobrew's BrewHouse`);
-
-    this.log(`checking password managers for picobrew credentials`);
-    const credentials = await keytar.findCredentials("picobrew");
-
-    const cookieJar = new CookieJar();
-    const setCookie = promisify(cookieJar.setCookie.bind(cookieJar));
-
-    // should we allow selecting a specific user given some people might have more than one account?
-    if (!credentials && credentials.length != 1) {
-      // prompt for user identifier (ie. 28341) ... TODO find a way to help users discover this
-      userId = await cli.prompt('What is your PicoBrew user identifier (ie. 28341)?')
-
-      // prompt for user session cookie `.ASPXAUTH` masking after entered
-      const sessionToken = await cli.prompt('What is \'.ASPXAUTH\' cookie value?', { type: 'hide' })
-
-      await setCookie(`.ASPXAUTH=${sessionToken}`, 'https://picobrew.com');
-
-      // store into password manager - TODO prompt if user wants to store for future use
-      keytar.setPassword("picobrew", userId, sessionToken);
-    } else {
-      userId = credentials[0].account;
-      await setCookie(`.ASPXAUTH=${credentials[0].password}`, 'https://picobrew.com');
-    }
+    
+    const {account, password} = await credentials();
+    userId = account
+    const cookieJar = await setupCookieJar(password);
 
     // fetch all recipe GUIDs
     if (flags.all) {
@@ -96,6 +76,8 @@ export default class Recipes extends Command {
         try {
           const response = await fetchAllRecipes(userId, cookieJar);
           const recipes = response.body;
+
+          console.log(recipes)
 
           console.log(`found ${recipes.length} recipes in your BrewHouse`)
 
