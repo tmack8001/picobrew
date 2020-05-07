@@ -19,29 +19,56 @@ $ npm install -g picobrew-cli
 $ picobrew COMMAND
 running command...
 $ picobrew (-v|--version|version)
-picobrew-cli/0.1.0 darwin-x64 node-v12.6.0
+picobrew-cli/0.2.0 darwin-x64 node-v12.6.0
 $ picobrew --help [COMMAND]
-Command line interface used to communicate to Picobrew
-
-VERSION
-  picobrew-cli/0.1.0 darwin-x64 node-v12.6.0
-
 USAGE
-  $ picobrew [COMMAND]
-
-COMMANDS
-  hello     describe the command here
-  help      display help for picobrew
-  recipes   Command used to export different formats of beer recipes from the Picobrew Brewhouse.
-  sessions  Command used to export sessions from linked machines from the Picobrew Brewhouse.
+  $ picobrew COMMAND
 ...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`picobrew hello [FILE]`](#picobrew-hello-file)
+* [`picobrew help [COMMAND]`](#picobrew-help-command)
 * [`picobrew recipes [RECIPEID]`](#picobrew-recipes-recipeid)
 * [`picobrew sessions [MACHINEGUID]`](#picobrew-sessions-machineguid)
-* [`picobrew help [COMMAND]`](#picobrew-help-command)
+
+## `picobrew hello [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ picobrew hello [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+
+EXAMPLE
+  $ picobrew hello
+  hello world from ./src/hello.ts!
+```
+
+_See code: [src/commands/hello.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.2.0/src/commands/hello.ts)_
+
+## `picobrew help [COMMAND]`
+
+display help for picobrew
+
+```
+USAGE
+  $ picobrew help [COMMAND]
+
+ARGUMENTS
+  COMMAND  command to show help for
+
+OPTIONS
+  --all  see all commands in CLI
+```
+
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
 ## `picobrew recipes [RECIPEID]`
 
@@ -57,13 +84,15 @@ OPTIONS
   -h, --help                             show CLI help
   -o, --output_filename=output_filename  custom output filename (default is to use name of brew recipe)
   -v, --verbose                          enable debugging output
-  --output_folder=output_folder          path to output folder (useful for use with `--all`)
+  --output_folder=output_folder          [default: recipes] path to output folder (useful for use with `--all`)
 
-EXAMPLE
-  $ picobrew recipes 95bd40cc4f4a4843923f88128b2286a6 --format=beerxml
+EXAMPLES
+  $ picobrew recipes <recipeId> --format=beerxml
+  $ picobrew recipes --format=beerxml --output_folder=recipes/xml --all
+  $ picobrew recipes --format=json --output_folder=recipes/json --all
 ```
 
-_See code: [src/commands/recipes.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.1.0/src/commands/recipes.ts)_
+_See code: [src/commands/recipes.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.2.0/src/commands/recipes.ts)_
 
 ## `picobrew sessions [MACHINEGUID]`
 
@@ -74,11 +103,18 @@ USAGE
   $ picobrew sessions [MACHINEGUID]
 
 OPTIONS
-  -f, --format=csv|json              [default: csv] path to output folder as each session is a separate json (with --all defaults to guid of machine)
+  -f, --format=csv|json              [default: csv] path to output folder as each session is a separate json (with --all
+                                     defaults to guid of machine)
+
   -h, --help                         show CLI help
+
   -n, --number=number                [default: 20] number of recent sessions to export
-  -o, --output_folder=output_folder  [default: sessions] path to output folder as each session is a separate json (with --all defaults to guid of machine)
+
+  -o, --output_folder=output_folder  [default: sessions] path to output folder as each session is a separate json (with
+                                     --all defaults to guid of machine)
+
   -s, --session=session              identifier of a specific sessions to export (ie. 60208)
+
   -v, --verbose                      enable debugging output
 
 EXAMPLES
@@ -87,23 +123,5 @@ EXAMPLES
   $ picobrew sessions --session=12345
 ```
 
-_See code: [src/commands/sessions.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.1.0/src/commands/sessions.ts)_
-
-
-## `picobrew help [COMMAND]`
-
-Command to display help for picobrew
-
-```
-USAGE
-  $ picobrew help [COMMAND]
-
-ARGUMENTS
-  COMMAND  command to show help for
-
-OPTIONS
-  --all  see all commands in CLI
-```
-
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
+_See code: [src/commands/sessions.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.2.0/src/commands/sessions.ts)_
 <!-- commandsstop -->
