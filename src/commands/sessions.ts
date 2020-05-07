@@ -75,7 +75,8 @@ export default class Sessions extends Command {
           json.SessionViews.forEach(session => {
             const id = session.SessionID
             const machineName = `${session.Alias} ${session.MachineType}`
-            this.exportSessionToFile(id, machineName, userId, cookieJar, flags);
+            this.writeOutputFile(flags, machineName, `${id}-session.json`, JSON.stringify(session, null, 2));
+            this.exportDatalogToFile(id, machineName, userId, cookieJar, flags);
           });
         } catch (error) {
           console.log(error);
@@ -92,7 +93,8 @@ export default class Sessions extends Command {
         json.SessionViews.forEach(session => {
           const id = session.SessionID
           const machineName = `${session.Alias} ${session.MachineType}`
-          this.exportSessionToFile(id, machineName, userId, cookieJar, flags);
+          this.writeOutputFile(flags, machineName, `${id}-session.json`, JSON.stringify(session, null, 2));
+          this.exportDatalogToFile(id, machineName, userId, cookieJar, flags);
         });
       } catch (error) {
         console.log(error);
@@ -101,17 +103,18 @@ export default class Sessions extends Command {
     }
   }
 
-  private exportSessionToFile(sessionId: string, machineAlias: string, userId: string, cookieJar: any, flags: { help: void; format: string, output_folder: string; number: number; verbose: boolean; }) {
+  private exportDatalogToFile(sessionId: string, machineAlias: string, userId: string, cookieJar: any, flags: { help: void; format: string, output_folder: string; number: number; verbose: boolean; }) {
     (async () => {
       try {
+        let filename = `${sessionId}-datalog.${flags.format}`
         if (flags.format == 'csv') {
-          const response = await fetchSessionRawData(sessionId, userId, cookieJar, flags);
+          const response = await fetchSessionRawDatalog(sessionId, userId, cookieJar, flags);
           const datalog = response.body;
-          this.writeOutputFile(flags, machineAlias, sessionId, datalog);
+          this.writeOutputFile(flags, machineAlias, filename, datalog);
         } else if (flags.format == 'json') {
-          const response = await fetchSessionDataLog(sessionId, userId, cookieJar, flags);
+          const response = await fetchSessionJsonDatalog(sessionId, userId, cookieJar, flags);
           const datalog = response.body;
-          this.writeOutputFile(flags, machineAlias, sessionId, JSON.stringify(datalog, null, 2));
+          this.writeOutputFile(flags, machineAlias, filename, JSON.stringify(datalog, null, 2));
         }
       }
       catch (error) {
@@ -121,15 +124,15 @@ export default class Sessions extends Command {
     })();
   }
 
-  private writeOutputFile(flags: { help: void; format: string; output_folder: string; number: number; verbose: boolean; }, machineAlias: string, sessionId: string, body: any) {
-    var filename = `${machineAlias}/${sessionId}.${flags.format}`
+  private writeOutputFile(flags: { help: void; format: string; output_folder: string; number: number; verbose: boolean; }, machineAlias: string, filename: string, body: any) {
+    var filePath = `${machineAlias}/${filename}`
 
-    console.log(`writing file ${filename} for session ${sessionId}`);
+    console.log(`writing file ${filePath}`);
 
-    ensureDirectoryExistence(`${flags.output_folder}/${filename}`);
-    fs.writeFile(`${flags.output_folder}/${filename}`, body, function (err) {
+    ensureDirectoryExistence(`${flags.output_folder}/${filePath}`);
+    fs.writeFile(`${flags.output_folder}/${filePath}`, body, function (err) {
       if (err) {
-        return console.log(`failed to write to ${filename}`);
+        return console.log(`failed to write to ${filePath}`);
       }
     });
   }
@@ -172,14 +175,14 @@ function fetchMachineSessions(machineGuid: string, user: string, cookieJar: any)
   });
 }
 
-function fetchSessionRawData(sessionId: string, user: string, cookieJar: any, flags: any): { body: any; } {
+function fetchSessionRawDatalog(sessionId: string, user: string, cookieJar: any, flags: any): { body: any; } {
   return picobrew.post(`Members/Logs/Loghouse2/CsvExport.cshtml?command=generate&filter=ZSessionLogs&id=${sessionId}&output=csv`, {
     cookieJar,
     responseType: 'text'
   });
 }
 
-function fetchSessionDataLog(sessionId: string, user: string, cookieJar: any, flags: any): { body: any; } {
+function fetchSessionJsonDatalog(sessionId: string, user: string, cookieJar: any, flags: any): { body: any; } {
   return picobrew.post(`API/Rest/RestAPI.cshtml?type=LogHouseRequest&id=${sessionId}`, {
     cookieJar,
     json: {
