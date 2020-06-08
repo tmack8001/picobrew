@@ -31,7 +31,7 @@ async function credentials() {
 
 async function wipeCredentials() {
   const credentials = await keytar.findCredentials("picobrew");
-  credentials.forEach(cred => {
+  credentials.forEach((cred: any) => {
     keytar.deletePassword("picobrew", cred.account)
   });
 
