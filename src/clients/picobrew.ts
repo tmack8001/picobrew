@@ -25,6 +25,8 @@ const instance = got.extend({
 				} catch (error) {
 					const {response} = error;
 
+					console.log(error.response.body)
+
 					// Nicer errors
 					if (response && response.body) {
 						error.name = 'PicobrewError';
