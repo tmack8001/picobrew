@@ -64,8 +64,6 @@ export default class Recipes extends Command {
     this.log('arguments received: ', args);
     this.log('flags received: ', flags);
 
-    this.log(`pulling recipe ${args.recipeId} from Picobrew's BrewHouse`);
-    
     const {account, password} = await credentials();
     userId = account
     const cookieJar = await setupCookieJar(password);
@@ -74,6 +72,8 @@ export default class Recipes extends Command {
     if (flags.all) {
       (async () => {
         try {
+          this.log(`pulling all available recipes from Picobrew's BrewHouse`);
+
           const response = await fetchAllRecipes(userId, cookieJar);
           const recipes = response.body;
 
@@ -96,6 +96,8 @@ export default class Recipes extends Command {
   }
 
   private exportRecipeToFile(format: string, recipeId: string, userId: string, cookieJar: any, flags: { help: void; format: string; output_filename: string | undefined; output_folder: string | undefined; all: boolean; verbose: boolean; }) {
+    this.log(`pulling ${recipeId} from Picobrew's BrewHouse`);
+
     if (format === "json") {
       (async () => {
         try {
