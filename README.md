@@ -19,7 +19,7 @@ $ npm install -g picobrew-cli
 $ picobrew COMMAND
 running command...
 $ picobrew (-v|--version|version)
-picobrew-cli/0.2.0 darwin-x64 node-v12.6.0
+picobrew-cli/0.3.0 darwin-x64 node-v12.6.0
 $ picobrew --help [COMMAND]
 USAGE
   $ picobrew COMMAND
@@ -51,7 +51,7 @@ EXAMPLE
   hello world from ./src/hello.ts!
 ```
 
-_See code: [src/commands/hello.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.2.0/src/commands/hello.ts)_
+_See code: [src/commands/hello.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.3.0/src/commands/hello.ts)_
 
 ## `picobrew help [COMMAND]`
 
@@ -92,7 +92,7 @@ EXAMPLES
   $ picobrew recipes --format=json --output_folder=recipes/json --all
 ```
 
-_See code: [src/commands/recipes.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.2.0/src/commands/recipes.ts)_
+_See code: [src/commands/recipes.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.3.0/src/commands/recipes.ts)_
 
 ## `picobrew sessions [MACHINEGUID]`
 
@@ -123,5 +123,5 @@ EXAMPLES
   $ picobrew sessions --session=12345
 ```
 
-_See code: [src/commands/sessions.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.2.0/src/commands/sessions.ts)_
+_See code: [src/commands/sessions.ts](https://github.com/tmack8001/picobrew-cli/blob/v0.3.0/src/commands/sessions.ts)_
 <!-- commandsstop -->

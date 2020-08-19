@@ -1,7 +1,7 @@
 {
   "name": "picobrew-cli",
   "description": "Command line interface used to communicate to Picobrew",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Trevor Mack",
   "bin": {
     "picobrew": "./bin/run"
